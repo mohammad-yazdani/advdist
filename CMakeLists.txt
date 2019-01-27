@@ -3,7 +3,9 @@ project(advdist)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(lib/include)
+set(GLOBAL_ROOT .)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../../bin)
 
+include_directories(lib/include)
 add_subdirectory(lib)
 add_subdirectory(apps)
