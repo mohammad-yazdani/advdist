@@ -6,7 +6,6 @@
 #include <net/Socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <unitypes.h>
 #include <arpa/inet.h>
 
 Socket::Socket(unsigned int port) : port(port)

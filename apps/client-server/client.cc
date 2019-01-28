@@ -12,7 +12,7 @@ main()
 {
     std::cout << "CS 798 > P1 > Q1 | Client" << std::endl;
 
-    auto clientSocket = Socket("127.0.0.1", 8080);
+    auto clientSocket = Socket("18.221.69.86", 8080);
     auto res = clientSocket.readBuf();
     std::cout << "Server said: " << res << std::endl;
     clientSocket.writeBuf("#");
