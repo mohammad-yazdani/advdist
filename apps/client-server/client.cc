@@ -13,9 +13,7 @@ main()
     std::cout << "CS 798 > P1 > Q1 | Client" << std::endl;
 
     auto clientSocket = Socket("18.221.69.86", 8080);
-    auto res = clientSocket.readBuf();
-    std::cout << "Server said: " << res << std::endl;
-    clientSocket.writeBuf("#");
+    clientSocket.waitRTT();
 
     return 0;
 }

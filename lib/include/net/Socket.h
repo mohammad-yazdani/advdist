@@ -25,8 +25,11 @@ public:
     virtual ~Socket();
 
     void waitForConn();
-    void writeBuf(std::string msg);
-    std::string readBuf();
+    long askRTT();
+    void waitRTT();
+
+    void writeBuf(std::string msg, size_t size);
+    std::string readBuf(size_t size);
 
     const std::vector<Event> &getEvent_queue() const;
 };

@@ -3,10 +3,12 @@
 //
 
 #include <iostream>
+#include <string.h>
 #include <net/Socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <cassert>
 
 Socket::Socket(unsigned int port) : port(port)
 {
@@ -36,21 +38,20 @@ Socket::Socket(std::string ip, unsigned int port) : port(port)
 }
 
 void
-Socket::writeBuf(std::string msg)
+Socket::writeBuf(std::string msg, size_t size)
 {
     this->event_queue.emplace_back(Event(TCPEventType::WRITE));
-    ssize_t size = write(this->socket_fd, msg.c_str(), msg.length());
-    std::cout << "WROTE " << size << std::endl;
-
+    ssize_t actualSize = write(this->socket_fd, msg.c_str(), size);
+    assert(size == actualSize);
 }
 
 std::string
-Socket::readBuf()
+Socket::readBuf(size_t size)
 {
     this->event_queue.emplace_back(Event(TCPEventType::READ));
     char buf[1];
-    ssize_t size = read(this->socket_fd, buf, sizeof(char));
-    std::cout << "READ " << size << std::endl;
+    ssize_t actualSize = read(this->socket_fd, buf, size);
+    assert(size == actualSize);
     return std::string(buf);
 }
 
@@ -69,4 +70,21 @@ Socket::getEvent_queue() const
 Socket::~Socket()
 {
     close(this->socket_fd);
+}
+
+long
+Socket::askRTT() {
+    auto e1 = Event(TCPEventType::RTT);
+    this->writeBuf("!", 1);
+    auto res = this->readBuf(1);
+    assert(res == "#");
+    auto e2 = Event(TCPEventType::RTT);
+    return e2.timeSince(&e1);
+}
+
+void
+Socket::waitRTT()
+{
+    auto res = this->readBuf(1);
+    this->writeBuf("#", 1);
 }

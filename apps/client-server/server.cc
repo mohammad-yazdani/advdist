@@ -6,6 +6,7 @@
 #include <net/Socket.h>
 #include <string>
 #include <thread>
+#include <chrono>
 
 int
 main()
@@ -14,11 +15,10 @@ main()
 
     auto serverSocket = Socket(8080);
     serverSocket.waitForConn();
-    serverSocket.writeBuf("!");
-    auto res = serverSocket.readBuf();
-    std::cout << "Client said: " << res << std::endl;
+    auto rtt = serverSocket.askRTT();
+    std::cout << "RTT: " << rtt << " nanoseconds | " << Event::toSeconds(rtt) << " seconds" << std::endl;
     for (auto event : serverSocket.getEvent_queue()) {
-        std::cout << event.getEpoch() << " ";
+        std::cout << event.getStamp() << " ";
         std::cout << event.getStringType() << std::endl;
     }
 
