@@ -12,6 +12,7 @@
 #include "Event.h"
 
 #define MAX_BACKLOG 10
+#define BUFFER_SIZE 65535
 
 class Socket {
 private:
@@ -28,8 +29,8 @@ public:
     long askRTT();
     void waitRTT();
 
-    void writeBuf(std::string msg, size_t size);
-    std::string readBuf(size_t size);
+    void writeBuf(void * buf, size_t size);
+    int readBuf(char * read_buf, size_t size);
 
     const std::vector<Event> &getEvent_queue() const;
 };
