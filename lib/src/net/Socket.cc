@@ -37,7 +37,10 @@ Socket::Socket(std::string ip, unsigned int port) : port(port)
     this->server_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
     auto res = connect(this->socket_fd, (struct sockaddr *)&this->server_addr, sizeof(this->server_addr));
-    if (res) exit(res);
+    if (res) {
+        perror("Could not connect.\n");
+        exit(res);
+    }
 }
 
 ssize_t
@@ -72,9 +75,7 @@ Socket::readBuf(char * read_buf, size_t size)
 void
 Socket::waitForConn()
 {
-    std::cout << "WAITING FOR CONNECTION " << this->port << std::endl;
     this->socket_fd = accept(this->socket_fd, nullptr, nullptr);
-    std::cout << "CONNECTION ACCEPTED " << this->port << std::endl;
 }
 
 const std::vector<Event> &
