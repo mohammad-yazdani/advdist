@@ -6,6 +6,11 @@ import advdist.p1grpc.clientserver.HelloRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import stats.DataSet;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,13 +63,37 @@ public class Client {
      */
     public static void main(String[] args) throws Exception {
         Client client = new Client("18.221.69.86", 8080);
+        BufferedWriter out = null;
         try {
             /* Access a service running on the local machine on port 50051 */
             String user = "world";
             if (args.length > 0) {
                 user = args[0]; /* Use the arg as the name to greet if provided */
             }
-            client.greet(user);
+            long totalStart = System.nanoTime();
+
+            DataSet bench = new DataSet();
+
+            for (int i = 0; i < 100; i++) {
+                long start = System.nanoTime();
+                client.greet(user + i);
+                long end = System.nanoTime();
+                bench.addData(end - start);
+            }
+
+            long totalEnd = System.nanoTime();
+            System.out.println("TOTAL: " + (totalEnd - totalStart));
+            for (long e : bench.getData()) {
+                System.out.println(e);
+            }
+
+            double avg = bench.average();
+            double per10 = bench.percentile(90);
+            double per90 = bench.percentile(10);
+
+            double[] sum = {avg, per10, per90};
+            DataSet.saveToCsv(sum, "gRPCSummary");
+            DataSet.saveToCsv(bench.getData(), "gRPCTotal");
         } finally {
             client.shutdown();
         }
