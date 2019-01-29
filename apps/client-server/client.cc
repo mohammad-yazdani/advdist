@@ -15,9 +15,13 @@
 void
 getRTT()
 {
-    auto clientSocket = new Socket("18.221.69.86", 8080);
-    clientSocket->waitRTT();
-    delete clientSocket;
+    std::cout << "== RTT TEST ===" << std::endl;
+    auto event1 = Event("RTT");
+    auto clientSocket = Socket("18.221.69.86", 8080);
+    clientSocket.readACK('!');
+    clientSocket.sendACK('#');
+    auto event2 = Event("END");
+    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
 }
 
 size_t
@@ -38,24 +42,52 @@ mmap(const std::string &abspath)
     return mapped;
 }
 
-int
-main()
+void
+largeFile(const std::string &abspath)
 {
-    std::cout << "CS 798 > P1 > Q1 | Client" << std::endl;
-    std::cout << "Buffer size: " << BUFFER_SIZE << std::endl;
+    std::cout << "== LARGE FILE TEST ===" << std::endl;
 
-    std::string abspath = "/Users/raynor106/advdist/apps/client-server/data/10mb.txt";
     void * data = mmap(abspath);
     auto size = getFileSize(abspath);
 
-    auto clientSocket = new Socket("18.221.69.86", 3000);
-    clientSocket->writeBuf(data, size);
+    auto clientSocket = Socket("18.221.69.86", 3000);
+
+    // Send file size
+    auto event1 = Event("SEND FILE SIZE");
+    clientSocket.writeBuf(&size, 8);
+    // Get ACK from server
+    auto event2 = Event("READ FILE SIZE CONFIRM");
+    clientSocket.readACK('!');
+    auto event3 = Event("SEND BIG FILE");
+    clientSocket.writeBuf(data, size);
     char ack = 0;
-    clientSocket->readBuf(&ack, 1);
-    delete clientSocket;
+    auto event4 = Event("READ BIG FILE CONFIRM");
+    clientSocket.readBuf(&ack, 1);
+
+    auto event5 = Event("END");
+
+    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
+    std::cout << event2.getDescription() << " " << event3.timeSince(&event2) << std::endl;
+    std::cout << event3.getDescription() << " "<< event4.timeSince(&event3) << std::endl;
+    std::cout << event4.getDescription() << " " << event5.timeSince(&event4) << std::endl;
 
     if (ack == '!')
-        return 0;
+        return;
     else
+        perror("Did not get ACK from server.");
+}
+
+int
+main(int argc, char * argv[])
+{
+    std::cout << "CS 798 > P1 > Q1 | Client" << std::endl;
+
+    if (argc < 2) {
+        perror("Please provide file path.\n");
         return 1;
+    }
+    std::string abspath = argv[1];
+
+    getRTT();
+    largeFile(abspath);
 }

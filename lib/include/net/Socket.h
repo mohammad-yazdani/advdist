@@ -12,7 +12,6 @@
 #include "Event.h"
 
 #define MAX_BACKLOG 10
-#define BUFFER_SIZE 65535
 
 class Socket {
 private:
@@ -20,17 +19,19 @@ private:
     unsigned int port;
     int socket_fd;
     sockaddr_in server_addr;
+
+    void setOptions();
 public:
     explicit Socket(unsigned int port);
     Socket(std::string ip, unsigned int port);
     virtual ~Socket();
 
     void waitForConn();
-    long askRTT();
-    void waitRTT();
+    void sendACK(char ackMsg);
+    void readACK(char ackMsg);
 
-    void writeBuf(void * buf, size_t size);
-    int readBuf(char * read_buf, size_t size);
+    ssize_t writeBuf(void * buf, size_t size);
+    ssize_t readBuf(char * read_buf, size_t size);
 
     const std::vector<Event> &getEvent_queue() const;
 };

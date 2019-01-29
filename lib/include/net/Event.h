@@ -8,27 +8,15 @@
 #include <chrono>
 #include <string>
 
-#define NANOSECOND 1000000000
-
-enum class TCPEventType {
-    READ,
-    WRITE,
-    RTT
-};
-
 class Event {
 private:
     std::chrono::high_resolution_clock::time_point start_stamp;
-    TCPEventType type;
+    std::string description;
 public:
-    explicit Event(TCPEventType type);
-    TCPEventType getType() const;
-
-    std::string getStringType() const;
-    uint64_t getStamp() const;
+    Event(const std::string &description);
     long timeSince(Event *pastEvent);
 
-    static double toSeconds(long nanoseconds);
+    const std::string &getDescription() const;
 };
 
 
