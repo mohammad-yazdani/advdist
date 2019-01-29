@@ -99,7 +99,7 @@ void
 Socket::setOptions()
 {
     struct timeval tv{};
-    tv.tv_sec = 10; /* seconds */
+    tv.tv_sec = 30; /* seconds */
     tv.tv_usec = 0;
 
     if(setsockopt(this->socket_fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0)

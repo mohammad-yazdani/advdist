@@ -11,9 +11,10 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <time/Benchmark.h>
 
 void
-getRTT()
+getRTT(Benchmark * bench)
 {
     std::cout << "== RTT TEST ===" << std::endl;
     auto event1 = Event("RTT");
@@ -21,7 +22,8 @@ getRTT()
     clientSocket.readACK('!');
     clientSocket.sendACK('#');
     auto event2 = Event("END");
-    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
+
+    bench->addInterval(event2.timeSince(&event1), event1.getDescription());
 }
 
 size_t
@@ -43,7 +45,7 @@ mmap(const std::string &abspath)
 }
 
 void
-largeFile(const std::string &abspath)
+largeFile(const std::string &abspath, Benchmark * bench)
 {
     std::cout << "== LARGE FILE TEST ===" << std::endl;
 
@@ -66,15 +68,26 @@ largeFile(const std::string &abspath)
 
     auto event5 = Event("END");
 
-    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
-    std::cout << event2.getDescription() << " " << event3.timeSince(&event2) << std::endl;
-    std::cout << event3.getDescription() << " "<< event4.timeSince(&event3) << std::endl;
-    std::cout << event4.getDescription() << " " << event5.timeSince(&event4) << std::endl;
+    bench->addInterval(event2.timeSince(&event1), event1.getDescription());
+    bench->addInterval(event3.timeSince(&event2), event2.getDescription());
+    bench->addInterval(event4.timeSince(&event3), event3.getDescription());
+    bench->addInterval(event5.timeSince(&event4), event4.getDescription());
 
     if (ack == '!')
         return;
     else
         perror("Did not get ACK from server.");
+}
+
+void
+experiment_1()
+{
+    auto bench = new Benchmark();
+    for (int i = 0; i < 100; i++) {
+        std::cout << "ITERATION " << i << std::endl;
+        getRTT(bench);
+    }
+    delete bench;
 }
 
 int
@@ -87,7 +100,7 @@ main(int argc, char * argv[])
         return 1;
     }
     std::string abspath = argv[1];
-
-    getRTT();
-    largeFile(abspath);
+    (void)abspath;
+    experiment_1();
+    //largeFile(abspath, bench);
 }

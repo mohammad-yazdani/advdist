@@ -4,7 +4,7 @@
 // Created by Mohammad Yazdani on 2019-01-26.
 //
 
-#include <net/Event.h>
+#include <time/Event.h>
 
 Event::Event(const std::string &description) : description(description)
 {

@@ -8,9 +8,10 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
+#include <time/Benchmark.h>
 
 void
-getRTT()
+getRTT(Benchmark * bench)
 {
     std::cout << "== RTT TEST ===" << std::endl;
     auto event1 = Event("RTT");
@@ -19,11 +20,12 @@ getRTT()
     serverSocket.sendACK('!');
     serverSocket.readACK('#');
     auto event2 = Event("END");
-    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
+
+    bench->addInterval(event2.timeSince(&event1), event1.getDescription());
 }
 
 void
-largeFile()
+largeFile(Benchmark * bench)
 {
     std::cout << "== LARGE FILE TEST ===" << std::endl;
 
@@ -63,10 +65,21 @@ largeFile()
 
     auto event5 = Event("END");
 
-    std::cout << event1.getDescription() << " " << event2.timeSince(&event1) << std::endl;
-    std::cout << event2.getDescription() << " " << event3.timeSince(&event2) << std::endl;
-    std::cout << event3.getDescription() << " "<< event4.timeSince(&event3) << std::endl;
-    std::cout << event4.getDescription() << " " << event5.timeSince(&event4) << std::endl;
+    bench->addInterval(event2.timeSince(&event1), event1.getDescription());
+    bench->addInterval(event3.timeSince(&event2), event2.getDescription());
+    bench->addInterval(event4.timeSince(&event3), event3.getDescription());
+    bench->addInterval(event5.timeSince(&event4), event4.getDescription());
+}
+
+void
+experiment_1()
+{
+    auto bench = new Benchmark();
+    for (int i = 0; i < 100; i++) {
+        std::cout << "ITERATION " << i << std::endl;
+        getRTT(bench);
+    }
+    delete bench;
 }
 
 int
@@ -74,8 +87,9 @@ main()
 {
     std::cout << "CS 798 > P1" << std::endl;
 
-    getRTT();
-    largeFile();
+    auto bench = new Benchmark();
 
-    return 0;
+    experiment_1();
+
+    delete bench;
 }
