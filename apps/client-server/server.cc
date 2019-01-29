@@ -11,11 +11,10 @@
 #include <time/Benchmark.h>
 
 void
-getRTT(Benchmark * bench)
+getRTT(Benchmark * bench, unsigned int port)
 {
-    std::cout << "== RTT TEST ===" << std::endl;
     auto event1 = Event("RTT");
-    auto serverSocket = Socket(8080);
+    auto serverSocket = Socket(port);
     serverSocket.waitForConn();
     serverSocket.sendACK('!');
     serverSocket.readACK('#');
@@ -74,10 +73,18 @@ largeFile(Benchmark * bench)
 void
 experiment_1()
 {
+    std::cout << "== RTT EXPERIMENT ===" << std::endl;
+
+    //auto serverSocket = Socket(3000);
+    //serverSocket.waitForConn();
+
     auto bench = new Benchmark();
-    for (int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
+        //serverSocket.sendACK('S');
         std::cout << "ITERATION " << i << std::endl;
-        getRTT(bench);
+        getRTT(bench, 9000 + i);
+        std::cout << "DONE " << i << std::endl;
+        //serverSocket.readACK('E');
     }
     delete bench;
 }

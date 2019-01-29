@@ -14,11 +14,10 @@
 #include <time/Benchmark.h>
 
 void
-getRTT(Benchmark * bench)
+getRTT(Benchmark * bench, unsigned int port)
 {
-    std::cout << "== RTT TEST ===" << std::endl;
     auto event1 = Event("RTT");
-    auto clientSocket = Socket("18.221.69.86", 8080);
+    auto clientSocket = Socket("18.221.69.86", port);
     clientSocket.readACK('!');
     clientSocket.sendACK('#');
     auto event2 = Event("END");
@@ -82,10 +81,17 @@ largeFile(const std::string &abspath, Benchmark * bench)
 void
 experiment_1()
 {
+    std::cout << "== RTT EXPERIMENT ===" << std::endl;
+
+    //auto clientSocket = Socket("18.221.69.86", 3000);
+
     auto bench = new Benchmark();
-    for (int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
+        //clientSocket.readACK('S');
         std::cout << "ITERATION " << i << std::endl;
-        getRTT(bench);
+        getRTT(bench, 9000 + i);
+        std::cout << "DONE " << i << std::endl;
+        //clientSocket.sendACK('E');
     }
     delete bench;
 }
