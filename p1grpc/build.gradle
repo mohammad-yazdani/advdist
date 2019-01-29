@@ -8,6 +8,8 @@ plugins {
     id 'idea'
 }
 
+apply plugin: 'application'
+
 group 'advdist'
 version '1.0-SNAPSHOT'
 
@@ -71,6 +73,13 @@ task helloWorldClient(type: CreateStartScripts) {
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
+
+task myRun(type: JavaExec) {
+    main = "advdist.p1grpc.clientserver.RPCServer"
+    classpath 'sourceSets.main.runtimeClasspath'
+}
+
+defaultTasks 'myRun'
 
 applicationDistribution.into('bin') {
     from(helloWorldServer)
