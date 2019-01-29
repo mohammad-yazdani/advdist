@@ -89,7 +89,7 @@ experiment_1()
     for (unsigned int i = 0; i < 100; i++) {
         //clientSocket.readACK('S');
         std::cout << "ITERATION " << i << std::endl;
-        getRTT(bench, 9000 + i);
+        getRTT(bench, 3000 + i);
         std::cout << "DONE " << i << std::endl;
         //clientSocket.sendACK('E');
     }
@@ -107,6 +107,9 @@ main(int argc, char * argv[])
     }
     std::string abspath = argv[1];
     (void)abspath;
-    experiment_1();
+    //experiment_1();
     //largeFile(abspath, bench);
+    auto bench = new Benchmark();
+    getRTT(bench, 3000);
+    delete bench;
 }

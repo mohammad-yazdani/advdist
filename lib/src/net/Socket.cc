@@ -73,8 +73,7 @@ void
 Socket::waitForConn()
 {
     std::cout << "WAITING FOR CONNECTION " << this->port << std::endl;
-    this->socket_fd = accept(this->socket_fd, (struct sockaddr*)&this->server_addr ,
-            (socklen_t*)sizeof(this->server_addr));
+    this->socket_fd = accept(this->socket_fd, nullptr, nullptr);
     std::cout << "CONNECTION ACCEPTED " << this->port << std::endl;
 }
 
