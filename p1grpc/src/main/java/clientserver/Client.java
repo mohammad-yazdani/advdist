@@ -57,7 +57,7 @@ public class Client {
      * greeting.
      */
     public static void main(String[] args) throws Exception {
-        Client client = new Client("localhost", 50051);
+        Client client = new Client("18.221.69.86", 8080);
         try {
             /* Access a service running on the local machine on port 50051 */
             String user = "world";
