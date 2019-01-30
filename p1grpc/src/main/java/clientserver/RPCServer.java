@@ -3,6 +3,8 @@ package clientserver;
 import advdist.p1grpc.clientserver.GreeterGrpc;
 import advdist.p1grpc.clientserver.HelloReply;
 import advdist.p1grpc.clientserver.HelloRequest;
+import advdist.p1grpc.clientserver.Ack;
+import advdist.p1grpc.clientserver.Payload;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -64,7 +66,14 @@ public class RPCServer {
 
         @Override
         public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-            HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName()).build();
+            HelloReply reply = HelloReply.newBuilder().setMessage(req.getName()).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void transferFile(Payload req, StreamObserver<Ack> responseObserver) {
+            Ack reply = Ack.newBuilder().setCode(String.valueOf(req.getBuffer().length())).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
