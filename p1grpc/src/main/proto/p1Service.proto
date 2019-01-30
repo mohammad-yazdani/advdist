@@ -13,6 +13,12 @@ service Greeter {
     rpc TransferFile (Payload) returns (Ack) {}
 }
 
+// The greeting service definition.
+service StreamingGreeter {
+    // Streams a many greetings
+    rpc StreamFile (stream Payload) returns (stream Ack) {}
+}
+
 // The request message containing the user's name.
 message HelloRequest {
     string name = 1;

@@ -4,6 +4,7 @@ import advdist.p1grpc.clientserver.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import stats.DataSet;
 
 import java.io.File;
@@ -12,7 +13,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +27,8 @@ public class Client {
 
     private final ManagedChannel channel;
     private final GreeterGrpc.GreeterBlockingStub blockingStub;
+    private final StreamingGreeterGrpc.StreamingGreeterBlockingStub streamingGreeterBlockingStub;
+    private StreamingGreeterGrpc.StreamingGreeterStub service;
 
     /** Construct client connecting to HelloWorld server at {@code host:port}. */
     public Client(String host, int port) {
@@ -32,12 +37,14 @@ public class Client {
                 // needing certificates.
                 .usePlaintext()
                 .build());
+        this.service = StreamingGreeterGrpc.newStub(channel);
     }
 
     /** Construct client for accessing HelloWorld server using the existing channel. */
     Client(ManagedChannel channel) {
         this.channel = channel;
         blockingStub = GreeterGrpc.newBlockingStub(channel);
+        streamingGreeterBlockingStub = StreamingGreeterGrpc.newBlockingStub(channel);
     }
 
     public void shutdown() throws InterruptedException {
@@ -117,6 +124,55 @@ public class Client {
         bench.save("gRPCLarge");
     }
 
+    private static void experiment3(Client client) throws Exception {
+        Path currentRelativePath = Paths.get("");
+        String s = currentRelativePath.toAbsolutePath().toString();
+        DataSet bench = new DataSet();
+        String largeFileName = s + "/src/main/resources/10mb.txt";
+
+        File f = new File(largeFileName);
+        FileChannel fc = new RandomAccessFile(f, "rw").getChannel();
+        MappedByteBuffer mappedByteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
+        mappedByteBuffer.load();
+        String buf = mappedByteBuffer.asReadOnlyBuffer().asCharBuffer().toString();
+
+        AtomicReference<StreamObserver<Payload>> requestObserverRef = new AtomicReference<>();
+        CountDownLatch finishedLatch = new CountDownLatch(1);
+
+        StreamObserver<Payload> observer = client.service.streamFile(new StreamObserver<Ack>() {
+            @Override
+            public void onNext(Ack value) {
+                System.out.println("onNext from client");
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                requestObserverRef.get().onNext(Payload.getDefaultInstance());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("on error");
+                t.printStackTrace();
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("on completed");
+                finishedLatch.countDown();
+            }
+        });
+
+        requestObserverRef.set(observer);
+        Payload p = Payload.newBuilder().setBuffer(buf).build();
+        observer.onNext(p);
+        finishedLatch.await();
+        observer.onCompleted();
+
+        bench.save("gRPCLarge");
+    }
+
     /**
      * Greet server. If provided, the first element of {@code args} is the name to use in the
      * greeting.
@@ -124,8 +180,8 @@ public class Client {
     public static void main(String[] args) throws Exception {
         Client client = new Client("18.221.69.86", 8080);
         try {
-            experiment1(client);
-            experiment2(client);
+            //experiment1(client);
+            //experiment2(client);
         } finally {
             client.shutdown();
         }

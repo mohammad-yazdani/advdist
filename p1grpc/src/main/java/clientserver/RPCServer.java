@@ -1,10 +1,6 @@
 package clientserver;
 
-import advdist.p1grpc.clientserver.GreeterGrpc;
-import advdist.p1grpc.clientserver.HelloReply;
-import advdist.p1grpc.clientserver.HelloRequest;
-import advdist.p1grpc.clientserver.Ack;
-import advdist.p1grpc.clientserver.Payload;
+import advdist.p1grpc.clientserver.*;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -24,6 +20,7 @@ public class RPCServer {
         int port = 8080;
         server = ServerBuilder.forPort(port)
                 .addService(new GreeterImpl())
+                .addService(new StreamingGreeterImpl())
                 .build()
                 .start();
         logger.info("Server started, listening on " + port);
@@ -76,6 +73,38 @@ public class RPCServer {
             Ack reply = Ack.newBuilder().setCode(String.valueOf(req.getBuffer().length())).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
+        }
+    }
+
+    static class StreamingGreeterImpl extends StreamingGreeterGrpc.StreamingGreeterImplBase {
+
+        @Override
+        public StreamObserver<Payload> streamFile(StreamObserver<Ack> responseObserver) {
+            System.out.println("Connecting stream observer");
+            StreamObserver<Payload> so = new StreamObserver<Payload>() {
+                @Override
+                public void onNext(Payload value) {
+                    System.out.println("onNext from server");
+                    try {
+                        Thread.sleep(1000L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    responseObserver.onNext(Ack.getDefaultInstance());
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    System.out.println("on error");
+                    t.printStackTrace();
+                }
+
+                @Override
+                public void onCompleted() {
+                    System.out.println("on completed");
+                }
+            };
+            return so;
         }
     }
 }
