@@ -72,4 +72,14 @@ public class DataSet {
         out.write(buffer.toString());
         out.close();
     }
+
+    public void save(String name) throws IOException {
+        double avg = this.average();
+        double per10 = this.percentile(90);
+        double per90 = this.percentile(10);
+
+        double[] sum = {avg, per10, per90};
+        DataSet.saveToCsv(sum, name + "Summary");
+        DataSet.saveToCsv(this.getData(), name + "Total");
+    }
 }
