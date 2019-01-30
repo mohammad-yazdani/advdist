@@ -1,25 +1,17 @@
 package clientserver;
 
 import advdist.p1grpc.clientserver.*;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import stats.DataSet;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -104,22 +96,18 @@ public class Client {
         DataSet bench = new DataSet();
         String largeFileName = s + "/src/main/resources/10mb.txt";
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
             File f = new File(largeFileName);
             FileChannel fc = new RandomAccessFile(f, "rw").getChannel();
             MappedByteBuffer mappedByteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
 
             mappedByteBuffer.load();
-            int chunkSize = 65536;
+            int chunkSize = 1048576;
 
             String buf = mappedByteBuffer.asReadOnlyBuffer().asCharBuffer().toString();
             long start = System.nanoTime();
-            while (buf.length() != 0) {
-                if (buf.length() < chunkSize) chunkSize = buf.length();
-                String chunk = buf.substring(0, chunkSize);
-                buf = buf.substring(chunkSize);
-                client.transfer(chunk);
-            }
+            String chunk = buf.substring(0, chunkSize);
+            client.transfer(chunk);
             long end = System.nanoTime();
             bench.addData(end - start);
             fc.close();
