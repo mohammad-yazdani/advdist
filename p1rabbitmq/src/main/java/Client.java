@@ -20,13 +20,14 @@ public class Client {
             DataSet bench = new DataSet();
             for (int i = 0; i < 100; i++) {
                 long start = System.nanoTime();
+                message = String.valueOf(i);
                 channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
                 long end = System.nanoTime();
-                System.out.println(" [x] Sent '" + message + "'");
+                System.out.println("[" + i + "] Sent '" + message + "'");
                 bench.addData(end - start);
             }
             bench.save("RabbitMQSimple");
-
+            System.out.println("END");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
