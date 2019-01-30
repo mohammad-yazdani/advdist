@@ -127,7 +127,7 @@ public class Client {
     private static void experiment3(Client client) throws Exception {
         Path currentRelativePath = Paths.get("");
         String s = currentRelativePath.toAbsolutePath().toString();
-        DataSet bench = new DataSet();
+
         String largeFileName = s + "/src/main/resources/10mb.txt";
 
         File f = new File(largeFileName);
@@ -148,7 +148,7 @@ public class Client {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-                requestObserverRef.get().onNext(Payload.getDefaultInstance());
+                //requestObserverRef.get().onNext(Payload.getDefaultInstance());
             }
 
             @Override
@@ -164,13 +164,13 @@ public class Client {
             }
         });
 
+        int chunkSize = 1048576;
         requestObserverRef.set(observer);
-        Payload p = Payload.newBuilder().setBuffer(buf).build();
+        String chunk = buf.substring(0, chunkSize);
+        Payload p = Payload.newBuilder().setBuffer(chunk).build();
         observer.onNext(p);
         finishedLatch.await();
         observer.onCompleted();
-
-        bench.save("gRPCLarge");
     }
 
     /**
@@ -178,12 +178,21 @@ public class Client {
      * greeting.
      */
     public static void main(String[] args) throws Exception {
-        Client client = new Client("18.221.69.86", 8080);
-        try {
-            //experiment1(client);
-            //experiment2(client);
-        } finally {
-            client.shutdown();
+        DataSet bench = new DataSet();
+        for (int i = 0; i < 1; i++) {
+            Client client = new Client("18.221.69.86", 8080);
+            try {
+                //experiment1(client);
+                //experiment2(client);
+
+                long start = System.nanoTime();
+                experiment3(client);
+                long end = System.nanoTime();
+                bench.addData(end - start);
+            } finally {
+                client.shutdown();
+            }
         }
+        bench.save("gRPCStream");
     }
 }
