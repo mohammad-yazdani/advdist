@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "advdist.p1grpc.clientserver";
+option java_outer_classname = "P1gRPCProto";
+
+package clientserver;
+
+// The greeting service definition.
+service Greeter {
+    // Sends a greeting
+    rpc SayHello (HelloRequest) returns (HelloReply) {}
+    rpc TransferFile (Payload) returns (Ack) {}
+}
+
+// The greeting service definition.
+service StreamingGreeter {
+    // Streams a many greetings
+    rpc StreamFile (stream Payload) returns (stream Ack) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+    string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+    string message = 1;
+}
+
+message Ack {
+    string code = 1;
+}
+
+message Payload {
+    string buffer = 1;
+}

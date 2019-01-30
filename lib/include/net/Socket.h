@@ -9,7 +9,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "Event.h"
+#include "time/Event.h"
 
 #define MAX_BACKLOG 10
 
@@ -19,14 +19,19 @@ private:
     unsigned int port;
     int socket_fd;
     sockaddr_in server_addr;
+
+    void setOptions();
 public:
     explicit Socket(unsigned int port);
     Socket(std::string ip, unsigned int port);
     virtual ~Socket();
 
     void waitForConn();
-    void writeBuf(std::string msg);
-    std::string readBuf();
+    void sendACK(char ackMsg);
+    void readACK(char ackMsg);
+
+    ssize_t writeBuf(void * buf, size_t size);
+    ssize_t readBuf(char * read_buf, size_t size);
 
     const std::vector<Event> &getEvent_queue() const;
 };
